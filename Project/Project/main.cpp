@@ -1,15 +1,17 @@
 // **********************************************************************
-// PUCRS/Escola Politécnica
-// COMPUTAÇÃO GRÁFICA
+// PUCRS/Escola PolitÈcnica - Mestrado
+// COMPUTA«√O GR¡FICA
 //
-// Programa basico para criar aplicacoes 2D em OpenGL
+// Aluno:
+// Gabriel Fonseca Silva
 //
+// Professor:
 // Marcio Sarroglia Pinho
 // pinho@pucrs.br
 // **********************************************************************
 
 #define PI 3.14159265
-#define POLY_COUNT 250
+#define POLY_COUNT 50
 #define WINDOW_POS_X 50
 #define WINDOW_POS_Y 5
 #define WINDOW_SIZE_X 1366
@@ -25,7 +27,6 @@
 #include <windows.h>
 #include <gl/glut.h>
 
-//#include "Point.h"
 #include "Polygon.h"
 
 using namespace std;
@@ -54,19 +55,8 @@ vector<PolygonR> polygons;
 Point referencePoint, pontoRefBorderX;
 
 int collisionMode = 0;
-bool mouseOverMode = false;
-bool showAABB = false;
-
-/*void RenderString(float x, float y, string text, float r = 1.0f, float g = 1.0f, float b = 1.0f)
-{
-	char *c;
-	glColor3f(r, g, b);
-	glRasterPos2f(x, y);
-	for (int i = 0; i < text.length(); i++) {
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, text[i]);
-	}
-}*/
-
+bool mouseOverMode = true;
+bool showAABB = true;
 
 void animate()
 {
@@ -103,6 +93,10 @@ void animate()
 	glutPostRedisplay();
 }
 
+void DetectCollision();
+bool DetectCollisionAABB(PolygonR poly, Point point);
+bool DetectCollisionLineCrossing(PolygonR poly, Point point);
+
 void CreatePolygons()
 {
 	polygons.clear();
@@ -130,47 +124,19 @@ void reshape(int w, int h)
 	glOrtho(0, ORTHO_SIZE_X, 0, ORTHO_SIZE_Y, 0, 1);
 }
 
-
-
 void display(void)
 {
-
-	// Limpa a tela coma cor de fundo
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	// Define os limites lÛgicos da ·rea OpenGL dentro da Janela
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glOrtho(0, ORTHO_SIZE_X, 0, ORTHO_SIZE_Y, 0, 1);
 
-	int __tempCount = 0;
-	int __nextVertex = 0;
-	for (int i = 0; i < polygons.size(); i++)
-	{
-		__tempCount = 0;
-		for (int j = 0; j < polygons[i].vertices.size(); j++)
-		{
-			__nextVertex = j + 1;
-			if (j == polygons[i].vertices.size() - 1)
-				__nextVertex = 0;
-			__tempCount += existeIntersec(pontoRefBorderX, referencePoint, polygons[i].vertices[j], polygons[i].vertices[__nextVertex]) == 1;
-		}
-		polygons[i].colliding = __tempCount % 2 == 1 ? true : false;
-	}
+	DetectCollision();
+	
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glLineWidth(3.0f);
-	glColor3f(1, 1, 1);
-	glPointSize(10.0f);
-	glBegin(GL_POINTS);
-	glVertex2f(referencePoint.x, referencePoint.y);
-	glEnd();
-
-	glBegin(GL_LINES);
-	glVertex2f(0, referencePoint.y);
-	glVertex2f(referencePoint.x, referencePoint.y);
-	glEnd();
 
 	glBegin(GL_LINES);
 	int next = 0;
@@ -192,7 +158,36 @@ void display(void)
 			glVertex2f(polygons[i].vertices[next].x, polygons[i].vertices[next].y);
 		}
 	}
+	glEnd();
 
+	if (showAABB)
+	{
+		glLineWidth(1.0f);
+		glBegin(GL_QUADS);
+		for (int i = 0; i < polygons.size(); i++)
+		{
+			if (polygons[i].insideAABB)
+				glColor3f(0.0f, 1.0f, 0.0f);
+			else
+				glColor3f(polygons[i].colorR, polygons[i].colorG, polygons[i].colorB);
+			glVertex2f(polygons[i].min.x, polygons[i].min.y);
+			glVertex2f(polygons[i].max.x, polygons[i].min.y);
+			glVertex2f(polygons[i].max.x, polygons[i].max.y);
+			glVertex2f(polygons[i].min.x, polygons[i].max.y);
+		}
+		glEnd();
+	}
+
+	// Reference Point
+	glLineWidth(3.0f);
+		glColor3f(1, 1, 1);
+	glBegin(GL_LINES);
+		glVertex2f(0, referencePoint.y);
+		glVertex2f(referencePoint.x, referencePoint.y);
+	glEnd();
+	glPointSize(10.0f);
+	glBegin(GL_POINTS);
+		glVertex2f(referencePoint.x, referencePoint.y);
 	glEnd();
 
 	// HUD Draw
@@ -239,7 +234,14 @@ void keyboard(unsigned char key, int x, int y)
 	case '1':
 		collisionMode++;
 		if (collisionMode == 4)
+		{
 			collisionMode = 0;
+		}
+		for (int i = 0; i < polygons.size(); i++)
+		{
+			polygons[i].colliding = false;
+			polygons[i].insideAABB = false;
+		}
 		break;
 	case '2':
 		mouseOverMode = 1 - mouseOverMode;
@@ -337,3 +339,55 @@ int  main(int argc, char** argv)
 
 	return 0;
 }
+
+void DetectCollision()
+{
+	if (collisionMode == 0)
+		return;
+	else if (collisionMode == 1) // LINE CROSSING
+	{
+		for (int i = 0; i < polygons.size(); i++)
+		{
+			polygons[i].colliding = DetectCollisionLineCrossing(polygons[i], referencePoint);
+		}
+	}
+	else if (collisionMode == 2) // AABB
+	{
+		for (int i = 0; i < polygons.size(); i++)
+		{
+			polygons[i].insideAABB = DetectCollisionAABB(polygons[i], referencePoint);
+		}
+	}
+	else if (collisionMode == 3) // AABB W/ LINE CROSSING
+	{
+		for (int i = 0; i < polygons.size(); i++)
+		{
+			polygons[i].insideAABB = DetectCollisionAABB(polygons[i], referencePoint);
+			polygons[i].colliding = DetectCollisionLineCrossing(polygons[i], referencePoint);
+		}
+	}
+}
+
+bool DetectCollisionAABB(PolygonR poly, Point point)
+{
+	return (point.x >= poly.min.x &&
+		point.x <= poly.max.x &&
+		point.y >= poly.min.y &&
+		point.y <= poly.max.y) ? true : false;
+}
+
+bool DetectCollisionLineCrossing(PolygonR poly, Point point)
+{
+	int __tempCount = 0;
+	int __nextVertex = 0;
+	
+	for (int j = 0; j < poly.vertices.size(); j++)
+	{
+		__nextVertex = j + 1;
+		if (j == poly.vertices.size() - 1)
+			__nextVertex = 0;
+		__tempCount += existeIntersec(pontoRefBorderX, referencePoint, poly.vertices[j], poly.vertices[__nextVertex]) == 1;
+	}
+	return __tempCount % 2 == 1 ? true : false;
+}
+

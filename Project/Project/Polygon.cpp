@@ -64,13 +64,13 @@ void PolygonR::CalculateAABB()
 
 	for (int i = 0; i < vertices.size(); i++)
 	{
-		if (vertices[i].x < min.x)
-			min.x = vertices[i].x;
-		else if (vertices[i].x > max.x)
+		if (vertices[i].x > max.x)
 			max.x = vertices[i].x;
-		if (vertices[i].y < min.y)
-			min.y = vertices[i].y;
-		else if (vertices[i].y > max.y)
+		else if (vertices[i].x < min.x)
+			min.x = vertices[i].x;
+		if (vertices[i].y > max.y)
 			max.y = vertices[i].y;
+		else if (vertices[i].y < min.y)
+			min.y = vertices[i].y;
 	}
 }

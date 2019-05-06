@@ -1,5 +1,16 @@
-﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(423,5): warning MSB4220: Waiting for the currently executing task "CL" to cancel.
-C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(423,5): warning MSB4220: Waiting for the currently executing task "CL" to cancel.
-C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(423,5): warning MSB4220: Waiting for the currently executing task "CL" to cancel.
-C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(423,5): warning MSB4220: Waiting for the currently executing task "CL" to cancel.
-MSBUILD : error MSB4166: Child node "2" exited prematurely. Shutting down. Diagnostic information may be found in files in "C:\Users\Gabriel\AppData\Local\Temp\" and will be named MSBuild_*.failure.txt. This location can be changed by setting the MSBUILDDEBUGPATH environment variable to a different directory.
+﻿  main.cpp
+d:\gameprojects\gc-trabalho1\project\project\point.h(17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\point.h(18): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\util.h(52): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\util.h(49): warning C4101: 'c': unreferenced local variable
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(69): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(113): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(146): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(152): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(167): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(240): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(349): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(356): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(363): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(384): warning C4018: '<': signed/unsigned mismatch
+  Project.vcxproj -> D:\GameProjects\GC-Trabalho1\Project\Debug\Project.exe

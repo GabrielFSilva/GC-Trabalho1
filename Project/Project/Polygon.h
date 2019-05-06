@@ -22,6 +22,7 @@ public:
 	vector<Point> vertices;
 	vector<int> nextVertex;
 	bool colliding;
+	bool insideAABB;
 
 	Point min;
 	Point max;
