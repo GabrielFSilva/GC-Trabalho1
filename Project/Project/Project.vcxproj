@@ -124,13 +124,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Polygon.cpp" />
+    <ClCompile Include="PolygonR.cpp" />
     <ClCompile Include="Slab.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="earcut.hpp" />
-    <ClInclude Include="Pointr.h" />
-    <ClInclude Include="Polygon.h" />
+    <ClInclude Include="PointR.h" />
+    <ClInclude Include="PolygonR.h" />
     <ClInclude Include="Slab.h" />
     <ClInclude Include="Util.h" />
   </ItemGroup>

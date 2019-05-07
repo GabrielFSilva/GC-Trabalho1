@@ -34,7 +34,7 @@
 #include <windows.h>
 #include <gl/glut.h>
 
-#include "Polygon.h"
+#include "PolygonR.h"
 #include "Slab.h"
 #include "earcut.hpp"
 
@@ -556,13 +556,21 @@ void DetectCollision(PointR p_point)
 		__v = &polygons;
 	for (int i = 0; i < __v->size(); i++)
 	{
-		if (collisionMode == 1 || collisionMode == 3)
+		if (collisionMode == 1)
 		{
 			__v->at(i).colliding = DetectCollisionLineCrossing(__v->at(i), p_point);
 		}
-		if (collisionMode == 2 || collisionMode == 3)
+		if (collisionMode == 2)
 		{
 			__v->at(i).insideAABB = DetectCollisionAABB(__v->at(i), p_point);
+		}
+		if (collisionMode == 3)
+		{
+			__v->at(i).insideAABB = DetectCollisionAABB(__v->at(i), p_point);
+			if (__v->at(i).insideAABB)
+				__v->at(i).colliding = DetectCollisionLineCrossing(__v->at(i), p_point);
+			else
+				__v->at(i).colliding = false;
 		}
 	}
 }
@@ -578,13 +586,21 @@ void DetectCollision(vector<int> p_indexes, PointR p_point)
 		__v = &polygons;
 	for (int i = 0; i < p_indexes.size(); i++)
 	{
-		if (collisionMode == 1 || collisionMode == 3)
+		if (collisionMode == 1)
 		{
 			__v->at(p_indexes[i]).colliding = DetectCollisionLineCrossing(__v->at(p_indexes[i]), p_point);
 		}
-		if (collisionMode == 2 || collisionMode == 3)
+		if (collisionMode == 2)
 		{
 			__v->at(p_indexes[i]).insideAABB = DetectCollisionAABB(__v->at(p_indexes[i]), p_point);
+		}
+		if (collisionMode == 3)
+		{
+			__v->at(p_indexes[i]).insideAABB = DetectCollisionAABB(__v->at(p_indexes[i]), p_point);
+			if (__v->at(p_indexes[i]).insideAABB)
+				__v->at(p_indexes[i]).colliding = DetectCollisionLineCrossing(__v->at(p_indexes[i]), p_point);
+			else
+				__v->at(p_indexes[i]).colliding = false;
 		}
 	}
 }
