@@ -1,16 +1,19 @@
 ﻿  main.cpp
-d:\gameprojects\gc-trabalho1\project\project\point.h(17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-d:\gameprojects\gc-trabalho1\project\project\point.h(18): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\pointr.h(17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\pointr.h(18): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 d:\gameprojects\gc-trabalho1\project\project\util.h(52): warning C4018: '<': signed/unsigned mismatch
 d:\gameprojects\gc-trabalho1\project\project\util.h(49): warning C4101: 'c': unreferenced local variable
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(69): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(113): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(146): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(152): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(167): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(240): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(349): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(356): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(363): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(98): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(142): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(148): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(162): warning C4244: 'return': conversion from 'float' to 'int', possible loss of data
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(189): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(227): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(233): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(249): warning C4018: '<': signed/unsigned mismatch
 d:\gameprojects\gc-trabalho1\project\project\main.cpp(384): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(395): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(510): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(532): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(559): warning C4018: '<': signed/unsigned mismatch
   Project.vcxproj -> D:\GameProjects\GC-Trabalho1\Project\Debug\Project.exe

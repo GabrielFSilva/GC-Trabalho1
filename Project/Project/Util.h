@@ -12,9 +12,9 @@ static int RandomRange(int floor, int ceiling)
 	return (rand() % (ceiling - floor)) + floor;
 };
 
-static int Lado(Point P1, Point P2, Point P)
+static int Lado(PointR P1, PointR P2, PointR P)
 {
-	Point V1, V2;
+	PointR V1, V2;
 	V1.x = P2.x - P1.x;
 	V1.y = P2.y - P1.y;
 	V2.x = P.x - P1.x;
@@ -28,7 +28,7 @@ static int Lado(Point P1, Point P2, Point P)
 		return -1;
 	else return 1;
 }
-static int existeIntersec(Point P1, Point P2, Point PA, Point PB)
+static int existeIntersec(PointR P1, PointR P2, PointR PA, PointR PB)
 {
 	int La, Lb, L1, L2;
 	La = Lado(P1, P2, PA);

@@ -10,8 +10,10 @@
 // pinho@pucrs.br
 // **********************************************************************
 
+
 #define PI 3.14159265
-#define POLY_COUNT 50
+#define POLY_COUNT 200000
+#define SLAB_COUNT 64
 #define WINDOW_POS_X 50
 #define WINDOW_POS_Y 5
 #define WINDOW_SIZE_X 1366
@@ -19,17 +21,32 @@
 #define ORTHO_SIZE_X 16
 #define ORTHO_SIZE_Y 9
 
+#include <array>
+#include <memory>
 #include <vector>
 #include <iostream>
 #include <string>
 #include <cmath>
 #include <ctime>
+#include <algorithm>
 #include <windows.h>
+#include "earcut.hpp"
 #include <gl/glut.h>
 
 #include "Polygon.h"
+#include "Slab.h"
 
+
+// EarClipping Setup
 using namespace std;
+using Coord = float;
+using N = uint32_t;
+using Point = std::array<Coord, 2>;
+
+std::vector<std::vector<Point>> earClippingVector;
+std::vector<N> indices;
+// ---------
+
 static DWORD last_idle_time;
 
 /*#ifdef WIN64
@@ -51,12 +68,24 @@ static struct timeval last_idle_time;
 */
 
 vector<PolygonR> polygons;
+vector<PolygonR> triangles;
+vector<Slab> slabs;
 
-Point referencePoint, pontoRefBorderX;
+PointR referencePoint, pontoRefBorderX;
 
 int collisionMode = 0;
+bool useSlabs = false;
+bool useTriangles = true;
 bool mouseOverMode = true;
-bool showAABB = true;
+bool drawAABB = true;
+bool drawSlabs = false;
+
+void CreateSlabs();
+void CreateTrianglesFromPolygons();
+void DetectCollision();
+void DetectCollision(vector<int> indexes);
+bool DetectCollisionAABB(PolygonR poly, PointR point);
+bool DetectCollisionLineCrossing(PolygonR poly, PointR point);
 
 void animate()
 {
@@ -93,24 +122,90 @@ void animate()
 	glutPostRedisplay();
 }
 
-void DetectCollision();
-bool DetectCollisionAABB(PolygonR poly, Point point);
-bool DetectCollisionLineCrossing(PolygonR poly, Point point);
-
 void CreatePolygons()
 {
 	polygons.clear();
 	for (int i = 0; i < POLY_COUNT; i++)
 	{
-		PolygonR *__la = new PolygonR(RandomRange(9, 20), RandomRange(1.0f, 15.0f), RandomRange(1.0f, 8.0f), 0.2f, 0.6f);
+		PolygonR *__la = new PolygonR(RandomRange(8, 21), RandomRange(1.0f, 15.0f), RandomRange(1.0f, 8.0f), 0.2f, 0.6f);
 		polygons.push_back(*__la);
+	}
+	CreateTrianglesFromPolygons();
+	CreateSlabs();
+}
+
+void CreateTrianglesFromPolygons()
+{
+	triangles.clear();
+	vector<PointR> newTriangleVertices;
+	PolygonR *__poly;
+	for (int i = 0; i < polygons.size(); i ++)
+	{
+		earClippingVector.clear();
+		earClippingVector.push_back(polygons[i].VerticesToPointVector());
+		indices = mapbox::earcut<N>(earClippingVector);
+
+		for (int j = 0; j < indices.size(); j += 3)
+		{
+			newTriangleVertices.clear();
+			newTriangleVertices.push_back(polygons[i].vertices[indices[j]]);
+			newTriangleVertices.push_back(polygons[i].vertices[indices[j + 1]]);
+			newTriangleVertices.push_back(polygons[i].vertices[indices[j + 2]]);
+			__poly = new PolygonR(newTriangleVertices, polygons[i].colorR, polygons[i].colorG, polygons[i].colorB);
+			triangles.push_back(*__poly);
+		}
+	}
+}
+
+int GetSlabByXPosition(float x)
+{
+	return max(0, min(floor(x / ((float)ORTHO_SIZE_X / (float)SLAB_COUNT)), SLAB_COUNT - 1));
+}
+
+void CreateSlabs()
+{
+	slabs.clear();
+	for (int i = 0; i < SLAB_COUNT; i++)
+	{
+		Slab *__s = new Slab();
+		__s->xMin = (float)i * ((float)ORTHO_SIZE_X / (float)SLAB_COUNT);
+		__s->xMax = ((float)(i + 1)) * ((float)ORTHO_SIZE_X / (float)SLAB_COUNT);
+		slabs.push_back(*__s);
+	}
+	PolygonR __poly;
+	for (int i = 0; i < POLY_COUNT; i++)
+	{
+		__poly = polygons[i];
+		for (int j = 0; j < SLAB_COUNT; j++)
+		{
+			if ((__poly.min.x >= slabs[j].xMin && __poly.min.x < slabs[j].xMax) ||
+				(__poly.max.x >= slabs[j].xMin && __poly.max.x < slabs[j].xMax) ||
+				(__poly.min.x <= slabs[j].xMin && __poly.max.x > slabs[j].xMax))
+			{
+				slabs[j].polygonIndexes.push_back(i);
+			}
+		}
+	}
+	for (int i = 0; i < triangles.size(); i++)
+	{
+		__poly = triangles[i];
+		for (int j = 0; j < SLAB_COUNT; j++)
+		{
+			if ((__poly.min.x >= slabs[j].xMin && __poly.min.x < slabs[j].xMax) ||
+				(__poly.max.x >= slabs[j].xMin && __poly.max.x < slabs[j].xMax) ||
+				(__poly.min.x <= slabs[j].xMin && __poly.max.x > slabs[j].xMax))
+			{
+				slabs[j].triangleIndexes.push_back(i);
+			}
+		}
 	}
 }
 
 void init(void)
 {
 	glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
-	srand(time(0));
+	//srand(time(0));
+	srand(0); // Seed 0 for testing and benchmarks
 	CreatePolygons();
 }
 
@@ -124,56 +219,94 @@ void reshape(int w, int h)
 	glOrtho(0, ORTHO_SIZE_X, 0, ORTHO_SIZE_Y, 0, 1);
 }
 
+void DrawPolygons(vector<PolygonR> v, float lineWidth = 1.0f)
+{
+	glLineWidth(lineWidth);
+	glBegin(GL_LINES);
+	int next = 0;
+	for (int i = 0; i < v.size(); i++)
+	{
+		if (v[i].colliding || (v[i].insideAABB && !drawAABB))
+			glColor3f(0.0f, 1.0f, 0.0f);
+		else
+			glColor3f(v[i].colorR, v[i].colorG, v[i].colorB);
+		for (int j = 0; j < v[i].vertices.size(); j++)
+		{
+			next = j + 1;
+			if (j == v[i].vertices.size() - 1)
+				next = 0;
+			glVertex2f(v[i].vertices[j].x, v[i].vertices[j].y);
+			glVertex2f(v[i].vertices[next].x, v[i].vertices[next].y);
+		}
+	}
+	glEnd();
+}
+
+void DrawAABBs(vector<PolygonR> v, float lineWidth = 1.0f)
+{
+	glLineWidth(lineWidth);
+	glBegin(GL_QUADS);
+	for (int i = 0; i < v.size(); i++)
+	{
+		if (v[i].insideAABB)
+			glColor3f(0.0f, 1.0f, 0.0f);
+		else
+			glColor3f(v[i].colorR, v[i].colorG, v[i].colorB);
+		glVertex2f(v[i].min.x, v[i].min.y);
+		glVertex2f(v[i].max.x, v[i].min.y);
+		glVertex2f(v[i].max.x, v[i].max.y);
+		glVertex2f(v[i].min.x, v[i].max.y);
+	}
+	glEnd();
+}
+
 void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glOrtho(0, ORTHO_SIZE_X, 0, ORTHO_SIZE_Y, 0, 1);
+	/*
 
-	DetectCollision();
-	
+	if (useSlabs)
+	{
+		if (useTriangles)
+			DetectCollision(slabs[GetSlabByXPosition(referencePoint.x)].triangleIndexes);
+		else
+			DetectCollision(slabs[GetSlabByXPosition(referencePoint.x)].polygonIndexes);
+	}
+	else
+		DetectCollision();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	
-
-	glBegin(GL_LINES);
-	int next = 0;
-	glColor3f(0.7f, 0.1f, 0.7f);
-	
 	// Draw all Polygons
-	for (int i = 0; i < polygons.size(); i++)
+	if (useTriangles)
+		DrawPolygons(triangles, 2.0f);
+	else
+		DrawPolygons(polygons, 3.0f);
+	
+	// Draw AABBs
+	if (drawAABB)
 	{
-		if (polygons[i].colliding)
-			glColor3f(0.0f, 1.0f, 0.0f);
+		if (useTriangles)
+			DrawAABBs(triangles, 1.0f);
 		else
-			glColor3f(polygons[i].colorR, polygons[i].colorG, polygons[i].colorB);
-		for (int j = 0; j < polygons[i].vertices.size(); j++)
-		{
-			next = j + 1;
-			if (j == polygons[i].vertices.size() - 1)
-				next = 0;
-			glVertex2f(polygons[i].vertices[j].x, polygons[i].vertices[j].y);
-			glVertex2f(polygons[i].vertices[next].x, polygons[i].vertices[next].y);
-		}
+			DrawAABBs(polygons, 2.0f);
 	}
-	glEnd();
 
-	if (showAABB)
+	// Draw Slabs
+	if (drawSlabs)
 	{
 		glLineWidth(1.0f);
-		glBegin(GL_QUADS);
-		for (int i = 0; i < polygons.size(); i++)
+		glBegin(GL_LINES);
+		glColor3f(1, 1, 1);
+		for (int i = 0; i < slabs.size(); i++)
 		{
-			if (polygons[i].insideAABB)
-				glColor3f(0.0f, 1.0f, 0.0f);
-			else
-				glColor3f(polygons[i].colorR, polygons[i].colorG, polygons[i].colorB);
-			glVertex2f(polygons[i].min.x, polygons[i].min.y);
-			glVertex2f(polygons[i].max.x, polygons[i].min.y);
-			glVertex2f(polygons[i].max.x, polygons[i].max.y);
-			glVertex2f(polygons[i].min.x, polygons[i].max.y);
+			glVertex2f(slabs[i].xMin, 0.0f);
+			glVertex2f(slabs[i].xMin, ORTHO_SIZE_Y);
+			glVertex2f(slabs[i].xMax, 0.0f);
+			glVertex2f(slabs[i].xMax, ORTHO_SIZE_Y);
 		}
 		glEnd();
 	}
@@ -190,7 +323,7 @@ void display(void)
 		glVertex2f(referencePoint.x, referencePoint.y);
 	glEnd();
 
-	// HUD Draw
+	// HUD
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glColor3f(0.8f, 0.9f, 1.0f);
 	glBegin(GL_QUADS);
@@ -209,18 +342,29 @@ void display(void)
 		RenderString(0.1f, 8.7f, "-ONLY AABB", 0.0f, 0.0f, 0.2f);
 	else
 		RenderString(0.1f, 8.7f, "-AABB W/ LINE CROSSING", 0.0f, 0.0f, 0.2f);
+	if (useTriangles)
+		RenderString(3.25f, 8.7f, "-TRIANGLES", 0.0f, 0.0f, 0.2f);
+	else
+		RenderString(3.25f, 8.7f, "-POLYGONS", 0.0f, 0.0f, 0.2f);
+	// Using Slabs
+	if (useSlabs)
+		RenderString(5.0f, 8.7f, "-SLABS ON", 0.0f, 0.0f, 0.2f);
+	else
+		RenderString(5.0f, 8.7f, "-SLABS OFF", 0.0f, 0.0f, 0.2f);
 	// Mouse Mode
 	if (mouseOverMode)
-		RenderString(3.0f, 8.7f, "-MOUSE OVER", 0.0f, 0.0f, 0.2f);
+		RenderString(7.0f, 8.7f, "-MOUSE OVER", 0.0f, 0.0f, 0.2f);
 	else 
-		RenderString(3.0f, 8.7f, "-MOUSE CLICK", 0.0f, 0.0f, 0.2f);
+		RenderString(7.0f, 8.7f, "-MOUSE CLICK", 0.0f, 0.0f, 0.2f);
 	// Render 
-	if (showAABB)
-		RenderString(5.0f, 8.7f, "-SHOW AABB", 0.0f, 0.0f, 0.2f);
+	if (drawAABB)
+		RenderString(9.0f, 8.7f, "-SHOW AABB", 0.0f, 0.0f, 0.2f);
 	else
-		RenderString(5.0f, 8.7f, "-HIDE AABB", 0.0f, 0.0f, 0.2f);
-
-
+		RenderString(9.0f, 8.7f, "-HIDE AABB", 0.0f, 0.0f, 0.2f);
+	if (drawSlabs)
+		RenderString(11.0f, 8.7f, "-SHOW SLABS", 0.0f, 0.0f, 0.2f);
+	else
+		RenderString(11.0f, 8.7f, "-HIDE SLABS", 0.0f, 0.0f, 0.2f);*/
 	glutSwapBuffers();
 }
 
@@ -244,10 +388,24 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	case '2':
-		mouseOverMode = 1 - mouseOverMode;
+		useTriangles = !useTriangles;
 		break;
 	case '3':
-		showAABB = !showAABB;
+		useSlabs = !useSlabs;
+		for (int i = 0; i < polygons.size(); i++)
+		{
+			polygons[i].colliding = false;
+			polygons[i].insideAABB = false;
+		}
+		break;
+	case '4':
+		mouseOverMode = 1 - mouseOverMode;
+		break;
+	case '5':
+		drawAABB = !drawAABB;
+		break;
+	case '6':
+		drawSlabs = !drawSlabs;
 		break;
 	case'w':
 		referencePoint.y += 0.5f;
@@ -344,31 +502,48 @@ void DetectCollision()
 {
 	if (collisionMode == 0)
 		return;
-	else if (collisionMode == 1) // LINE CROSSING
+	vector<PolygonR> *__v;
+	if (useTriangles)
+		__v = &triangles;
+	else
+		__v = &polygons;
+	for (int i = 0; i < __v->size(); i++)
 	{
-		for (int i = 0; i < polygons.size(); i++)
+		if (collisionMode == 1 || collisionMode == 3)
 		{
-			polygons[i].colliding = DetectCollisionLineCrossing(polygons[i], referencePoint);
+			__v->at(i).colliding = DetectCollisionLineCrossing(__v->at(i), referencePoint);
 		}
-	}
-	else if (collisionMode == 2) // AABB
-	{
-		for (int i = 0; i < polygons.size(); i++)
+		if (collisionMode == 2 || collisionMode == 3)
 		{
-			polygons[i].insideAABB = DetectCollisionAABB(polygons[i], referencePoint);
-		}
-	}
-	else if (collisionMode == 3) // AABB W/ LINE CROSSING
-	{
-		for (int i = 0; i < polygons.size(); i++)
-		{
-			polygons[i].insideAABB = DetectCollisionAABB(polygons[i], referencePoint);
-			polygons[i].colliding = DetectCollisionLineCrossing(polygons[i], referencePoint);
+			__v->at(i).insideAABB = DetectCollisionAABB(__v->at(i), referencePoint);
 		}
 	}
 }
 
-bool DetectCollisionAABB(PolygonR poly, Point point)
+void DetectCollision(vector<int> p_indexes)
+{
+	if (collisionMode == 0)
+		return;
+	vector<PolygonR> *__v;
+	if (useTriangles)
+		__v = &triangles;
+	else
+		__v = &polygons;
+	for (int i = 0; i < p_indexes.size(); i++)
+	{
+		cout << p_indexes[i] << endl;
+		if (collisionMode == 1 || collisionMode == 3)
+		{
+			__v->at(p_indexes[i]).colliding = DetectCollisionLineCrossing(__v->at(p_indexes[i]), referencePoint);
+		}
+		if (collisionMode == 2 || collisionMode == 3)
+		{
+			__v->at(p_indexes[i]).insideAABB = DetectCollisionAABB(__v->at(p_indexes[i]), referencePoint);
+		}
+	}
+}
+
+bool DetectCollisionAABB(PolygonR poly, PointR point)
 {
 	return (point.x >= poly.min.x &&
 		point.x <= poly.max.x &&
@@ -376,7 +551,7 @@ bool DetectCollisionAABB(PolygonR poly, Point point)
 		point.y <= poly.max.y) ? true : false;
 }
 
-bool DetectCollisionLineCrossing(PolygonR poly, Point point)
+bool DetectCollisionLineCrossing(PolygonR poly, PointR point)
 {
 	int __tempCount = 0;
 	int __nextVertex = 0;

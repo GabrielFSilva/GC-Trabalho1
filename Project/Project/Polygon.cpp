@@ -12,10 +12,12 @@ PolygonR::PolygonR(int vertexCount, float centerX, float centerY, float minRange
 	CalculateAABB();
 }
 
-PolygonR::PolygonR(vector<Point> p_vertexList)
+PolygonR::PolygonR(vector<PointR> p_vertexList, float r, float g, float b)
 {
 	vertices = p_vertexList;
-	GetRandomColor();
+	colorR = r;
+	colorG = g;
+	colorB = b;
 	CalculateAABB();
 }
 
@@ -25,6 +27,17 @@ PolygonR::~PolygonR()
 	vertices.clear();
 }
 
+vector<std::array<float, 2>> PolygonR::VerticesToPointVector()
+{
+	vector<std::array<float, 2>> __v;
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		__v.push_back({ vertices[i].x, vertices[i].y });
+	}
+
+	return __v;
+}
+
 void PolygonR::CreateRandomVertices(int vertexCount, float centerX, float centerY, float minRange, float maxRange)
 {
 	if (vertexCount < 3)
@@ -32,7 +45,7 @@ void PolygonR::CreateRandomVertices(int vertexCount, float centerX, float center
 		perror("Not enought vertices");
 		exit(1);
 	}
-	Point __tempPoint;
+	PointR __tempPoint;
 	vertices.clear();
 	float __interval = 360.0f / vertexCount;
 	float __toRadians = PI / 180.0f;
@@ -66,11 +79,11 @@ void PolygonR::CalculateAABB()
 	{
 		if (vertices[i].x > max.x)
 			max.x = vertices[i].x;
-		else if (vertices[i].x < min.x)
+		if (vertices[i].x < min.x)
 			min.x = vertices[i].x;
 		if (vertices[i].y > max.y)
 			max.y = vertices[i].y;
-		else if (vertices[i].y < min.y)
+		if (vertices[i].y < min.y)
 			min.y = vertices[i].y;
 	}
 }
