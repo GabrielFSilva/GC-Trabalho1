@@ -15,7 +15,7 @@
 #define POLY_COUNT 50
 #define POINTS_COUNT 100
 #define POINT_ROWS 10
-#define SLAB_COUNT 16
+#define SLAB_COUNT 64
 #define WINDOW_POS_X 50
 #define WINDOW_POS_Y 5
 #define WINDOW_SIZE_X 1366
@@ -331,7 +331,7 @@ void display(void)
 		else
 			DetectCollision(referencePoint);
 	}
-
+	
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// Draw all Polygons
@@ -376,7 +376,7 @@ void display(void)
 	glBegin(GL_POINTS);
 		glVertex2f(referencePoint.x, referencePoint.y);
 	glEnd();
-
+	
 	// HUD
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glColor3f(0.8f, 0.9f, 1.0f);
@@ -513,7 +513,6 @@ int  main(int argc, char** argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);
 	glutInitWindowPosition(WINDOW_POS_X, WINDOW_POS_Y);
-
 	// Set window size
 	glutInitWindowSize((WINDOW_SIZE_X), WINDOW_SIZE_Y);
 

@@ -17,7 +17,7 @@ d:\gameprojects\gc-trabalho1\project\project\main.cpp(307): warning C4018: '<': 
 d:\gameprojects\gc-trabalho1\project\project\main.cpp(317): warning C4018: '<': signed/unsigned mismatch
 d:\gameprojects\gc-trabalho1\project\project\main.cpp(328): warning C4018: '<': signed/unsigned mismatch
 d:\gameprojects\gc-trabalho1\project\project\main.cpp(358): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(557): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(587): warning C4018: '<': signed/unsigned mismatch
-d:\gameprojects\gc-trabalho1\project\project\main.cpp(621): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(556): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(586): warning C4018: '<': signed/unsigned mismatch
+d:\gameprojects\gc-trabalho1\project\project\main.cpp(620): warning C4018: '<': signed/unsigned mismatch
   Project.vcxproj -> D:\GameProjects\GC-Trabalho1\Project\Debug\Project.exe
